@@ -13,13 +13,13 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/jarrodnorwell/HQx", branch: "main"),
-        .package(url: "https://github.com/jarrodnorwell/XBRZ", branch: "main")
+        .package(url: "https://github.com/jarrodnorwell/xBRZ", branch: "main")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.d
         .target(name: "Kiwi", dependencies: ["KiwiObjC"]),
-        .target(name: "KiwiCXX", dependencies: ["HQx", "XBRZ"], sources: ["", "bus", "cartridge", "controller", "cpu", "mappers", "ppu"],
+        .target(name: "KiwiCXX", dependencies: ["HQx", "xBRZ"], sources: ["", "bus", "cartridge", "controller", "cpu", "mappers", "ppu"],
                 publicHeadersPath: "include", cxxSettings: [
                     .unsafeFlags([
                         "-Wno-conversion"
