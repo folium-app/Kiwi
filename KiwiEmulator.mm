@@ -90,7 +90,9 @@ public:
             };
             
             if (auto buffer = [[KiwiEmulator sharedInstance] fb])
-                buffer(fb, 160, 144);
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    buffer(fb, 160, 144);
+                });
 
             // Limit FPS
             auto frameEnd = steady_clock::now();
