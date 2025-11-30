@@ -20,11 +20,6 @@
 #include <gambatte/common/resample/resamplerinfo.h>
 #include <gambatte/common/scoped_ptr.h>
 
-#include <SDL3/SDL.h>
-#include <SDL3/SDL_main.h>
-
-SDL_AudioStream* stream = nullptr;
-
 std::jthread thread;
 gambatte::GB gameboy{};
 uint32_t* fb;
@@ -61,7 +56,7 @@ public:
     gameboy.setSaveDir({[saveDirectoryURL.path UTF8String]});
     
     fb = new uint32_t[160 * 144 * 4];
-    ab = new uint32_t[2064 * 4 * 4];
+    ab = new uint32_t[2064 * 2 * 4];
 }
 
 -(void) start {
@@ -107,8 +102,6 @@ public:
     thread.request_stop();
     if (thread.joinable())
         thread.join();
-    
-    SDL_DestroyAudioStream(stream);
     
     delete [] ab;
     delete [] fb;
