@@ -10,27 +10,28 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @interface KiwiEmulator : NSObject
-@property (nonatomic, strong, nullable) void (^ab) (uint32_t*, size_t);
-@property (nonatomic, strong, nullable) void (^fb) (uint32_t*, NSInteger, NSInteger);
+@property (nonatomic, strong, nullable) void (^audioCallback) (uint32_t*, NSInteger);
+@property (nonatomic, strong, nullable) void (^videoCallback) (uint32_t*, NSInteger, NSInteger);
 
 +(KiwiEmulator *) sharedInstance NS_SWIFT_NAME(shared());
 
--(void) insertCartridge:(NSURL *)url NS_SWIFT_NAME(insert(_:));
+-(void) insertCartridge:(NSURL *)url NS_SWIFT_NAME(insert(cartridge:));
 
+-(void) pause;
 -(void) start;
 -(void) stop;
--(BOOL) isPaused;
--(void) pause:(BOOL)pause;
+-(void) unpause;
 
--(NSString *) title:(NSURL *)url NS_SWIFT_NAME(title(from:));
+-(BOOL) isPaused NS_SWIFT_NAME(paused());
+-(BOOL) isRunning NS_SWIFT_NAME(running());
 
--(void) button:(uint8_t)button player:(int)player pressed:(BOOL)pressed;
+-(void) press:(uint32_t)button;
+-(void) release:(uint32_t)button;
 
--(BOOL) loadState;
--(BOOL) saveState;
+-(void) load:(NSURL *)url NS_SWIFT_NAME(load(state:));
+-(void) save:(NSURL *)url NS_SWIFT_NAME(save(state:));
 
--(void) load:(NSURL *)url;
--(void) save:(NSURL *)url;
+-(NSString *) title:(NSURL *)url NS_SWIFT_NAME(title(cartridge:));
 @end
 
 NS_ASSUME_NONNULL_END

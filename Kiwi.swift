@@ -5,24 +5,44 @@
 //  Created by Jarrod Norwell on 12/8/2025.
 //
 
-public enum KiwiKey : UInt8 {
-    case a = 0b00000001
-    case b = 0b00000010
-    case select = 0b00000100
-    case start = 0b00001000
-    case right = 0b00010000
-    case left = 0b00100000
-    case up = 0b01000000
-    case down = 0b10000000
+import Foundation
+
+@objcMembers
+public class KiwiCommon : NSObject {
+    public static var documentDirectoryURL: URL? {
+        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first
+    }
+    
+    public static var kiwiDirectoryURL: URL? {
+        if let documentDirectoryURL {
+            documentDirectoryURL.appending(component: "Kiwi")
+        } else {
+            nil
+        }
+    }
+    
+    public static var statesDirectoryURL: URL? {
+        if let kiwiDirectoryURL {
+            kiwiDirectoryURL.appending(component: "states")
+        } else {
+            nil
+        }
+    }
 }
 
 public actor Kiwi {
-    public var emulator: KiwiEmulator = .shared()
+    public let emulator: KiwiEmulator = KiwiEmulator.shared()
     
     public init() {}
     
-    public func insert(_ cartridge: URL) {
-        emulator.insert(cartridge)
+    
+    public func insert(cartridge: URL) {
+        emulator.insert(cartridge: cartridge)
+    }
+    
+    
+    public func pause() {
+        emulator.pause()
     }
     
     public func start() {
@@ -33,48 +53,48 @@ public actor Kiwi {
         emulator.stop()
     }
     
-    public var isPaused: Bool {
-        get {
-            emulator.isPaused()
-        }
-        set {
-            pause(newValue)
-        }
+    public func unpause() {
+        emulator.unpause()
     }
     
-    public func pause(_ pause: Bool) {
-        emulator.pause(pause)
+    
+    public var paused: Bool {
+        emulator.paused()
     }
     
-    public func title(_ cartridge: URL) -> String {
-        emulator.title(from: cartridge)
+    public var running: Bool {
+        emulator.running()
     }
     
-    public func load(state url: URL) {
-        emulator.load(url)
+    
+    public func press(button: UInt32) {
+        emulator.press(button)
     }
     
-    public func save(state url: URL) {
-        emulator.save(url)
+    public func release(button: UInt32) {
+        emulator.release(button)
     }
     
-    public func ab(_ buffer: @escaping (UnsafeMutablePointer<UInt32>, Int) -> Void) {
-        emulator.ab = buffer
+    
+    public func load(state: URL) {
+        emulator.load(state: state)
     }
     
-    public func fb(_ buffer: @escaping (UnsafeMutablePointer<UInt32>, _ width: Int, _ height: Int) -> Void) {
-        emulator.fb = buffer
+    public func save(state: URL) {
+        emulator.save(state: state)
     }
     
-    public func button(button: KiwiKey, player: Int, pressed: Bool) {
-        emulator.button(button.rawValue, player: .init(player), pressed: pressed)
+    
+    public func audioCallback(output: @escaping (UnsafeMutablePointer<UInt32>, Int) -> Void) {
+        emulator.audioCallback = output
     }
     
-    public func loadState(_ completionHandler: @escaping (Bool) -> Void) {
-        completionHandler(emulator.loadState())
+    public func videoCallback(output: @escaping (UnsafeMutablePointer<UInt32>, Int, Int) -> Void) {
+        emulator.videoCallback = output
     }
     
-    public func saveState(_ completionHandler: @escaping (Bool) -> Void) {
-        completionHandler(emulator.saveState())
+    
+    public func title(cartridge: URL) -> String {
+        emulator.title(cartridge: cartridge)
     }
 }

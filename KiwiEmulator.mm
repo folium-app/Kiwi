@@ -6,6 +6,7 @@
 //
 
 #import "KiwiEmulator.h"
+#import "Kiwi-Swift.h"
 
 #include <atomic>
 #include <chrono>
@@ -25,7 +26,7 @@ gambatte::GB gameboy{};
 uint32_t* fb;
 uint32_t* ab;
 
-std::atomic<bool> paused;
+std::atomic<bool> paused, running;
 std::mutex mutex;
 std::condition_variable_any cv;
 
@@ -48,18 +49,22 @@ public:
     return sharedInstance;
 }
 
--(void) insertCartridge:(NSURL *)url {
-    NSURL* saveDirectoryURL = [[[[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] firstObject] URLByAppendingPathComponent:@"Kiwi"] URLByAppendingPathComponent:@"states"];
-    
+
+-(void) insertCartridge:(NSURL *)url { // TODO: rewrite
     gameboy.setInputGetter(&GetInput);
     gameboy.load([url.path UTF8String], gambatte::GB::MULTICART_COMPAT);
-    gameboy.setSaveDir({[saveDirectoryURL.path UTF8String]});
+    gameboy.setSaveDir(std::string{[KiwiCommon.statesDirectoryURL.path UTF8String]});
     
     fb = new uint32_t[160 * 144 * 4];
     ab = new uint32_t[2064 * 2 * 4];
 }
 
--(void) start {
+
+-(void) pause {
+    paused.store(true);
+}
+
+-(void) start { // TODO: rewrite
     thread = std::jthread([&](std::stop_token token) {
         using namespace std::chrono;
         
@@ -79,15 +84,12 @@ public:
             auto frameStart = steady_clock::now();
             
             size_t samples = 2064;
-            while (gameboy.runFor(fb, 160, ab, samples) == -1) {
-                if (auto buffer = [[KiwiEmulator sharedInstance] ab])
+            while (gameboy.runFor(fb, 160, ab, samples) == -1)
+                if (auto buffer = [[KiwiEmulator sharedInstance] audioCallback])
                     buffer(ab, samples);
-            };
             
-            if (auto buffer = [[KiwiEmulator sharedInstance] fb])
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    buffer(fb, 160, 144);
-                });
+            if (auto buffer = [[KiwiEmulator sharedInstance] videoCallback])
+                buffer(fb, 160, 144);
 
             // Limit FPS
             auto frameEnd = steady_clock::now();
@@ -107,48 +109,44 @@ public:
     delete [] fb;
     
     paused.store(false);
+    running.store(false);
 }
+
+-(void) unpause {
+    paused.store(false);
+    cv.notify_all();
+}
+
 
 -(BOOL) isPaused {
     return paused.load();
 }
 
--(void) pause:(BOOL)pause {
-    if (pause)
-        paused.store(true);
-    else {
-        paused.store(false);
-        cv.notify_all();
-    }
+-(BOOL) isRunning {
+    return running.load();
 }
 
--(NSString *) title:(NSURL *)url {
-    gameboy.load([url.path UTF8String]);
-    return [NSString stringWithCharacters:(const unichar*)gameboy.romTitle().c_str() length:gameboy.romTitle().length()];
+
+-(void) press:(uint32_t)button {
+    activeInput[0] |= button;
 }
 
--(void) button:(uint8_t)button player:(int)player pressed:(BOOL)pressed {
-    if (pressed)
-        activeInput[0] |= button;
-    else
-        activeInput[0] &= ~button;
+-(void) release:(uint32_t)button {
+    activeInput[0] &= ~button;
 }
 
--(BOOL) loadState {
-    gameboy.selectState(0);
-    return gameboy.loadState();
-}
-
--(BOOL) saveState {
-    gameboy.selectState(0);
-    return gameboy.saveState(nullptr, 0);
-}
 
 -(void) load:(NSURL *)url {
-    gameboy.loadState([url.path UTF8String]);
+    gameboy.loadState(std::string{[url.path UTF8String]});
 }
 
 -(void) save:(NSURL *)url {
-    gameboy.saveState(nullptr, 0, [url.path UTF8String]);
+    gameboy.saveState(nullptr, 0, std::string{[url.path UTF8String]});
+}
+
+
+-(NSString *) title:(NSURL *)url {
+    gameboy.load(std::string{[url.path UTF8String]});
+    return [NSString stringWithCharacters:(const unichar*)gameboy.romTitle().c_str() length:gameboy.romTitle().length()];
 }
 @end
