@@ -146,7 +146,7 @@ public:
 
 
 -(NSString *) title:(NSURL *)url {
-    gameboy.load(std::string{[url.path UTF8String]});
-    return [NSString stringWithCharacters:(const unichar*)gameboy.romTitle().c_str() length:gameboy.romTitle().length()];
+    auto result = gameboy.load(std::string{[url.path UTF8String]}, gambatte::GB::MULTICART_COMPAT);
+    return [NSString stringWithCString:gameboy.romTitle().c_str() encoding:NSUTF8StringEncoding];
 }
 @end
