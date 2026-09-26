@@ -72,9 +72,6 @@ void kiwi::initialize_paths(void) {
 }
 
 void kiwi::initialize_system(void) {
-    FolderUtilities::SetHomeFolder(cntnr_k.kiwi_path.string());
-    FolderUtilities::SetFolderOverrides({}, {}, {}, cntnr_k.system_data_path);
-    
     auto mm{std::make_unique<iOSMessageManager>()};
     MessageManager::SetOptions(false, true);
     MessageManager::RegisterMessageManager(mm.get());
@@ -98,6 +95,9 @@ void kiwi::destroy_system(void) {
 
 
 void kiwi::insert_disc(std::string path) {
+    FolderUtilities::SetHomeFolder(cntnr_k.kiwi_path.string());
+    FolderUtilities::SetFolderOverrides({}, {}, {}, cntnr_k.system_data_path);
+    
     cntnr_k.emulator->LoadRom({path}, {});
     cntnr_k.emulator->RegisterInputProvider(cntnr_k.input.get());
 }
