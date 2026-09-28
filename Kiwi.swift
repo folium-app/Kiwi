@@ -157,4 +157,21 @@ public actor KiwiSystem {
         
         return "https://raw.githubusercontent.com/libretro/libretro-thumbnails/refs/heads/master/Nintendo - \(systemName)/Named_Boxarts/\(title).png"
     }
+    
+    
+    public nonisolated func saveStatePath(for index: Int) -> String {
+        String(kiwi.save_state_path(Int32(index)))
+    }
+    
+    public func saveStateExists(for index: Int) -> Bool {
+        kiwi.save_state_exists(Int32(index))
+    }
+    
+    public func saveStateLoad(for index: Int) {
+        kiwi.load_state(Int32(index))
+    }
+    
+    public func saveStateSave(for index: Int) {
+        kiwi.save_state(Int32(index))
+    }
 }

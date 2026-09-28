@@ -43,4 +43,9 @@ enum class SETTING {
 };
 
 void set_setting(SETTING, bool);
+
+
+bool save_state_exists(int);
+std::string save_state_path(int);
+void load_state(int), save_state(int);
 }

@@ -10,6 +10,7 @@
 
 #include "Shared/EmuSettings.h"
 #include "Shared/MessageManager.h"
+#include "Shared/SaveStateManager.h"
 #include "Utilities/FolderUtilities.h"
 
 #include <atomic>
@@ -211,4 +212,28 @@ void kiwi::set_setting(SETTING setting, bool value) {
     }
     
     cntnr_k.emulator->GetSettings()->SetGameboyConfig(cntnr_k.config);
+}
+
+
+bool kiwi::save_state_exists(int index) {
+    if (const auto& save_state_manager = cntnr_k.emulator->GetSaveStateManager()) {
+        const auto& path{save_state_manager->GetSaveStatePath(index)};
+        return std::filesystem::exists(path) && std::filesystem::file_size(path) > 0;
+    } return false;
+}
+
+std::string kiwi::save_state_path(int index) {
+    if (const auto& save_state_manager = cntnr_k.emulator->GetSaveStateManager()) {
+        return save_state_manager->GetSaveStatePath(index);
+    } return {};
+}
+
+void kiwi::load_state(int index) {
+    if (const auto& save_state_manager = cntnr_k.emulator->GetSaveStateManager())
+        save_state_manager->LoadState(index);
+}
+
+void kiwi::save_state(int index) {
+    if (const auto& save_state_manager = cntnr_k.emulator->GetSaveStateManager())
+        save_state_manager->SaveState(index);
 }
